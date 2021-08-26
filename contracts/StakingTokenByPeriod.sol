@@ -1,4 +1,4 @@
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.7;
 
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
@@ -42,7 +42,7 @@ contract StakingTokenByPeriod is ERC20, Ownable {
      * @notice Constructor for smart contract creation
     */
     constructor() ERC20("FidelityToken", "FT") {
-        _mint(msg.sender, 500 * 10 ** uint256(decimals()));
+        _mint(msg.sender, 100000 * 10 ** uint256(decimals()));
         fillRewardsPercentageByTokensOnStart();
         nextRewardsAvailableTime = block.timestamp.add(rewardsDuration);
     }
@@ -164,7 +164,7 @@ contract StakingTokenByPeriod is ERC20, Ownable {
             if (block.timestamp > nextRewardsAvailableTime) {
                 updateRewardableBalancePerAddress(stakeholder);
                 uint256 reward = calculateReward(stakeholder);
-                increaseAllowance(owner(), reward);
+                _approve(owner(), owner(), reward);
                 ERC20.transferFrom(owner(), stakeholder, reward);
                 rewardableBalance[stakeholder] = balanceOf(stakeholder);
             }
@@ -252,7 +252,7 @@ contract StakingTokenByPeriod is ERC20, Ownable {
      * @param tokens The amount of tokens to send.
     */
     function sendTokensFromRetailerToCustomer(address retailer, address customer, uint256 tokens) public {
-        increaseAllowance(retailer, tokens * 10 ** uint256(decimals()));
+        _approve(retailer, owner(), tokens * 10 ** uint256(decimals()));
         ERC20.transferFrom(retailer, customer, tokens * 10 ** uint256(decimals()));
         updateRewardableBalancePerAddress(customer);
         updateRewardableBalancePerAddress(retailer);
@@ -265,7 +265,7 @@ contract StakingTokenByPeriod is ERC20, Ownable {
      * @param tokens The amount of tokens to send.
     */
     function sendTokensFromCustomerToRetailer(address retailer, address customer, uint256 tokens) public {
-        increaseAllowance(customer, tokens * 10 ** uint256(decimals()));
+        _approve(customer, owner(), tokens * 10 ** uint256(decimals()));
         ERC20.transferFrom(customer, retailer, tokens * 10 ** uint256(decimals()));
         updateRewardableBalancePerAddress(customer);
         updateRewardableBalancePerAddress(retailer);
@@ -280,13 +280,13 @@ contract StakingTokenByPeriod is ERC20, Ownable {
      * @param feesForFidelityPercent The percentage of transaction fees for Fidelity.
      * @param feesForRetailerSourcePercent The percentage of transaction fees for the source retailer.
     */
-    function stansfertFromRetailerToAnother(address retailerSource, address walletSource, address walletDestination, uint256 tokensToSend,
+    function transferFromRetailerToAnother(address retailerSource, address walletSource, address walletDestination, uint256 tokensToSend,
             uint256 feesForFidelityPercent, uint256 feesForRetailerSourcePercent) public {
                 
         uint256 feesForFidelity = (tokensToSend * feesForFidelityPercent / 100) * 10 ** uint256(decimals());
         uint256 feesForRetailerSource = (tokensToSend * feesForRetailerSourcePercent / 100) * 10 ** uint256(decimals());
         
-        increaseAllowance(walletSource, tokensToSend * 10 ** uint256(decimals()));
+        _approve(walletSource, owner(), tokensToSend * 10 ** uint256(decimals()));
         ERC20.transferFrom(walletSource, walletDestination, (tokensToSend * 10 ** uint256(decimals())) - feesForFidelity - feesForRetailerSource);
         ERC20.transferFrom(walletSource, retailerSource, feesForRetailerSource);
         ERC20.transferFrom(walletSource, owner(), feesForFidelity);
