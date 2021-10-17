@@ -1,4 +1,4 @@
-pragma solidity ^0.8.7;
+pragma solidity ^0.8.0;
 
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
@@ -58,6 +58,7 @@ contract StakingTokenByPeriod is ERC20, Ownable {
     */
     function isStakeholder(address _address)
         public
+        onlyOwner
         view
         returns(bool, uint256)
     {
@@ -73,6 +74,7 @@ contract StakingTokenByPeriod is ERC20, Ownable {
     */
     function addStakeholder(address _stakeholder)
         public
+        onlyOwner
     {
         (bool _isStakeholder, ) = isStakeholder(_stakeholder);
         if(!_isStakeholder) {
@@ -87,6 +89,7 @@ contract StakingTokenByPeriod is ERC20, Ownable {
     */
     function removeStakeholder(address _stakeholder)
         public
+        onlyOwner
     {
         (bool _isStakeholder, uint256 s) = isStakeholder(_stakeholder);
         if(_isStakeholder){
@@ -105,6 +108,7 @@ contract StakingTokenByPeriod is ERC20, Ownable {
     */
     function calculateReward(address _stakeholder)
         public
+        onlyOwner
         view
         returns(uint256)
     {
@@ -118,6 +122,7 @@ contract StakingTokenByPeriod is ERC20, Ownable {
     */
     function getRewardableBalanceByStakeholder(address _stakeholder)
         public
+        onlyOwner
         view
         returns(uint256)
     {
@@ -131,6 +136,7 @@ contract StakingTokenByPeriod is ERC20, Ownable {
     */
     function getRewardPercentage(address _stakeholder)
         public
+        onlyOwner
         view
         returns(uint256)
     {
@@ -148,7 +154,7 @@ contract StakingTokenByPeriod is ERC20, Ownable {
      * @notice A method to get the reward percentage by balance.
      * @return The reward percentage according to the stakeholder's balance
     */
-    function getRewardsPercentageByTokens() public view returns (EchelonReward[] memory) {
+    function getRewardsPercentageByTokens() public onlyOwner view returns (EchelonReward[] memory) {
         return rewardsPercentageByTokens;
     }
 
@@ -164,7 +170,7 @@ contract StakingTokenByPeriod is ERC20, Ownable {
             if (block.timestamp > nextRewardsAvailableTime) {
                 updateRewardableBalancePerAddress(stakeholder);
                 uint256 reward = calculateReward(stakeholder);
-                _approve(owner(), owner(), reward);
+                increaseAllowance(owner(), reward);
                 ERC20.transferFrom(owner(), stakeholder, reward);
                 rewardableBalance[stakeholder] = balanceOf(stakeholder);
             }
@@ -176,7 +182,7 @@ contract StakingTokenByPeriod is ERC20, Ownable {
      * @notice A method to update the rewards percentage echlons.
      * @param newEchlonArray The new rewards echlons.
     */
-    function updateRewardsPercentageByTokens(EchelonReward[] calldata newEchlonArray) public onlyOwner{
+    function updateRewardsPercentageByTokens(EchelonReward[] calldata newEchlonArray) public onlyOwner {
         if (0 != newEchlonArray.length) {
             delete rewardsPercentageByTokens;
             for (uint index = 0; index < newEchlonArray.length; index++) {
@@ -191,7 +197,7 @@ contract StakingTokenByPeriod is ERC20, Ownable {
     /**
      * @notice A method to initialize the reward percntages.
     */
-    function fillRewardsPercentageByTokensOnStart() private {
+    function fillRewardsPercentageByTokensOnStart() private onlyOwner {
         rewardsPercentageByTokens.push(EchelonReward(
             {
                 echelonMaxValue : 100 * 10 ** uint256(decimals()),
@@ -251,8 +257,8 @@ contract StakingTokenByPeriod is ERC20, Ownable {
      * @param customer The customer address.
      * @param tokens The amount of tokens to send.
     */
-    function sendTokensFromRetailerToCustomer(address retailer, address customer, uint256 tokens) public {
-        _approve(retailer, owner(), tokens * 10 ** uint256(decimals()));
+    function sendTokensFromRetailerToCustomer(address retailer, address customer, uint256 tokens) public onlyOwner {
+        increaseAllowance(retailer, tokens * 10 ** uint256(decimals()));
         ERC20.transferFrom(retailer, customer, tokens * 10 ** uint256(decimals()));
         updateRewardableBalancePerAddress(customer);
         updateRewardableBalancePerAddress(retailer);
@@ -264,8 +270,8 @@ contract StakingTokenByPeriod is ERC20, Ownable {
      * @param customer The customer address.
      * @param tokens The amount of tokens to send.
     */
-    function sendTokensFromCustomerToRetailer(address retailer, address customer, uint256 tokens) public {
-        _approve(customer, owner(), tokens * 10 ** uint256(decimals()));
+    function sendTokensFromCustomerToRetailer(address retailer, address customer, uint256 tokens) public onlyOwner {
+        increaseAllowance(customer, tokens * 10 ** uint256(decimals()));
         ERC20.transferFrom(customer, retailer, tokens * 10 ** uint256(decimals()));
         updateRewardableBalancePerAddress(customer);
         updateRewardableBalancePerAddress(retailer);
@@ -280,15 +286,19 @@ contract StakingTokenByPeriod is ERC20, Ownable {
      * @param feesForFidelityPercent The percentage of transaction fees for Fidelity.
      * @param feesForRetailerSourcePercent The percentage of transaction fees for the source retailer.
     */
-    function transferFromRetailerToAnother(address retailerSource, address walletSource, address walletDestination, uint256 tokensToSend,
-            uint256 feesForFidelityPercent, uint256 feesForRetailerSourcePercent) public {
+    function tansfertFromRetailerToAnother(address retailerSource, address walletSource, address walletDestination, uint256 tokensToSend,
+            uint256 feesForFidelityPercent, uint256 feesForRetailerSourcePercent) public onlyOwner {
                 
-        uint256 feesForFidelity = (tokensToSend * feesForFidelityPercent / 100) * 10 ** uint256(decimals());
-        uint256 feesForRetailerSource = (tokensToSend * feesForRetailerSourcePercent / 100) * 10 ** uint256(decimals());
+        uint256 feesForFidelity = ((tokensToSend * feesForFidelityPercent) / 100) * 10 ** uint256(decimals());
+        uint256 feesForRetailerSource = ((tokensToSend * feesForRetailerSourcePercent) / 100) * 10 ** uint256(decimals());
         
-        _approve(walletSource, owner(), tokensToSend * 10 ** uint256(decimals()));
+        increaseAllowance(walletSource, (tokensToSend * 10 ** uint256(decimals())) - feesForFidelity - feesForRetailerSource);
         ERC20.transferFrom(walletSource, walletDestination, (tokensToSend * 10 ** uint256(decimals())) - feesForFidelity - feesForRetailerSource);
+        
+        increaseAllowance(walletSource, feesForRetailerSource);
         ERC20.transferFrom(walletSource, retailerSource, feesForRetailerSource);
+        
+        increaseAllowance(walletSource, feesForFidelity);
         ERC20.transferFrom(walletSource, owner(), feesForFidelity);
         
         updateRewardableBalancePerAddress(retailerSource);
@@ -298,10 +308,18 @@ contract StakingTokenByPeriod is ERC20, Ownable {
     }
 
     /**
-     * @notice A method to min extra tokens.
+     * @notice A method to mint extra tokens.
      * @param tokens The amount of tokens to mint.
     */
-    function mintExtraTokens(uint256 tokens) public {
+    function mintExtraTokens(uint256 tokens) public onlyOwner {
         _mint(owner(), tokens * 10 ** uint256(decimals()));
+    }
+    
+    /**
+     * @notice A method to burn tokens.
+     * @param tokens The amount of tokens to burn.
+    */
+    function burnTokens(uint256 tokens) public onlyOwner {
+        _burn(owner(), tokens * 10 ** uint256(decimals()));
     }
 }
