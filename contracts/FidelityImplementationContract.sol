@@ -166,17 +166,17 @@ contract FidelityImplementationContract is OwnableUpgradeable, ERC20Upgradeable 
         public
         onlyOwner
     {
-        for (uint256 s = 0; s < stakeholders.length; s += 1){
-            address stakeholder = stakeholders[s];
-            if (block.timestamp > nextRewardsAvailableTime) {
-                updateRewardableBalancePerAddress(stakeholder);
-                uint256 reward = calculateReward(stakeholder);
-                increaseAllowance(owner(), reward);
-                transferFrom(owner(), stakeholder, reward);
-                rewardableBalance[stakeholder] = balanceOf(stakeholder);
-            }
-        }
-        nextRewardsAvailableTime = block.timestamp.add(rewardsDuration);
+		if (block.timestamp >= nextRewardsAvailableTime) {
+			for (uint256 s = 0; s < stakeholders.length; s += 1){
+				address stakeholder = stakeholders[s];
+				updateRewardableBalancePerAddress(stakeholder);
+				uint256 reward = calculateReward(stakeholder);
+				increaseAllowance(owner(), reward);
+				transferFrom(owner(), stakeholder, reward);
+				rewardableBalance[stakeholder] = balanceOf(stakeholder);
+			}
+			nextRewardsAvailableTime = block.timestamp.add(rewardsDuration);
+		}
     }
 
     /**
@@ -322,6 +322,19 @@ contract FidelityImplementationContract is OwnableUpgradeable, ERC20Upgradeable 
     */
     function burnTokens(uint256 tokens) public onlyOwner {
         _burn(owner(), tokens * 10 ** uint256(decimals()));
+    }
+	
+	/**
+     * @notice A method to get the formatted balance of the given stakeholder.
+     * @param _stakeholder The stakeholder.
+     * @return The formatted balance of the given stakeholder
+    */
+    function getFormattedBalance(address _stakeholder)
+        public
+        view
+        returns(uint256)
+    {
+        return balanceOf(_stakeholder) / 10 ** uint256(decimals());
     }
     
 }
