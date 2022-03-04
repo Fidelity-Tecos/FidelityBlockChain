@@ -19,11 +19,11 @@ module.exports = {
       }
     ]
   },
-  defaultNetwork: "ropsten",
+  defaultNetwork: "hardhat",
    networks: {
       hardhat: {},
       ropsten: {
-         url: "https://eth-ropsten.alchemyapi.io/v2/hV2L0Hsia37Q0z7h3VXPiTZNDgh1NeYw",
+         url: "https://eth-ropsten.alchemyapi.io/v2/4pbHvJfI7rlwnPysxdf6q8rR8M5Ny-IK",
          accounts: ["af17118d278dd2d92f13b9ce6375410c9fd0e3515ca94c09ef1689e15a9971eb"]
       }
    },
