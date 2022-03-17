@@ -97,6 +97,19 @@ describe("Fidelity Token contract", function () {
 	  
     });
 	
+	it("Test allowance", async function () {
+      const initialOwnerBalance = await fidelityToken.getFormattedBalance(owner.address);
+
+      // Transfer 1000 tokens from owner to addr1.
+      await fidelityToken.sendTokensFromRetailerToCustomer(owner.address, addr1.address, 1000);
+
+      // Transfer another 500 tokens from addr1 to addr2.
+      await fidelityToken.sendTokensFromRetailerToCustomer(addr1.address, addr2.address, 500);
+
+      
+	  
+    });
+	
   });
   
   describe("Rewards", function () {
