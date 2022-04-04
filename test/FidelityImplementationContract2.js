@@ -105,8 +105,19 @@ describe("Fidelity Token contract", function () {
 
       // Transfer another 500 tokens from addr1 to addr2.
       await fidelityToken.sendTokensFromRetailerToCustomer(addr1.address, addr2.address, 500);
+	  
+    });
+	
+	it("Test update rewards", async function () {
+	  let echelon = await fidelityToken.getEchelonReward();
+	  
+	  expect(echelon.length).to.equal(5);
 
-      
+      await fidelityToken.updateRewardsPercentageByTokens([{echelonMaxValue : 1000, percentage : 1}, {echelonMaxValue : 2000, percentage : 2}]);
+	  
+	  echelon = await fidelityToken.getEchelonReward();
+	  
+	  expect(echelon.length).to.equal(2);
 	  
     });
 	

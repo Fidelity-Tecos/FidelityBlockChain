@@ -190,9 +190,22 @@ contract FidelityImplementationContract is OwnableUpgradeable, ERC20Upgradeable 
                 EchelonReward memory echelon;
                 echelon.echelonMaxValue = newEchlonArray[index].echelonMaxValue * 10 ** uint256(decimals());
                 echelon.percentage = newEchlonArray[index].percentage;
-                rewardsPercentageByTokens[index] = echelon;
+                rewardsPercentageByTokens.push(echelon);
             }
         }
+    }
+	
+	/**
+     * @notice A method to get the echelon duration array.
+     * @return EchelonReward[] memory The echelon reward array
+    */
+	function getEchelonReward()
+        public
+        onlyOwner
+        view
+        returns(EchelonReward[] memory)
+    {
+        return rewardsPercentageByTokens;
     }
 
     /**
